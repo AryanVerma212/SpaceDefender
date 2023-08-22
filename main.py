@@ -18,19 +18,25 @@ pygame.display.set_icon(icon);
 background=pygame.image.load('bg.jpg'); 
 
 #Enemy
-enemyImg=pygame.image.load('enemy.png'); 
-enemyX,enemyY= random.randint(0,displayresolutionX-64),0; 
-enemySpeed=0.9; 
-enemyX_change=enemySpeed; 
+num_of_enemies=4; 
+enemyImg=[]; 
+enemyX,enemyY=[],[]; 
+enemyX_change=[]; 
+enemySpeed=[]; 
 enemyY_change=32; 
-
-
+for enemy in range(num_of_enemies):
+    enemyImg.append(pygame.image.load('enemy.png')); 
+    enemyX.append(random.randint(0,displayresolutionX-32)); 
+    enemyY.append(random.randint(0,displayresolutionY*0.5)); 
+    enemySpeed.append(random.randint(5,10)/10.0); 
+    enemyX_change.append(enemySpeed[enemy]); 
+    
 #Player
 playerImg=pygame.image.load('spaceship.png'); 
 playerX,playerY= displayresolutionX/2-32,displayresolutionY-64; 
 playerX_change=0; 
 playerY_change=0; 
-playerSpeed=0.6; 
+playerSpeed=0.7; 
 
 #Bullet
 #Ready State:
@@ -43,8 +49,8 @@ score=0;
 def player(X,Y):
     screen.blit(playerImg,(X,Y)); 
 
-def enemy(X,Y):
-    screen.blit(enemyImg,(X,Y)); 
+def enemy(X,Y,i):
+    screen.blit(enemyImg[i],(X,Y)); 
 
 def fireBullet(X,Y):
     global bulletState; 
@@ -102,13 +108,24 @@ while running:
     if playerY<0:
         playerY=0; 
     
-    enemyX+=enemyX_change; 
-    if enemyX>displayresolutionX-64: #64 is the size of image
-        enemyX_change=-enemySpeed;  
-        enemyY+=enemyY_change; 
-    if enemyX<0:
-        enemyX_change=enemySpeed; 
-        enemyY+=enemyY_change; 
+    for i in range(num_of_enemies):
+        enemyX[i]+=enemyX_change[i]; 
+        if enemyX[i]>displayresolutionX-64: #64 is the size of image
+            enemyX_change[i]=-enemySpeed[i];  
+            enemyY[i]+=enemyY_change; 
+        if enemyX[i]<0:
+            enemyX_change[i]=enemySpeed[i]; 
+            enemyY[i]+=enemyY_change; 
+        
+        #Collision
+
+        collision=isCollision(enemyX[i],enemyY[i],bulletX,bulletY); 
+        if collision:
+            bulletState='ready'; 
+            score+=1; 
+            print(score); 
+            enemyX[i],enemyY[i]= random.randint(0,displayresolutionX-64),0; 
+        enemy(enemyX[i],enemyY[i],i); 
     
     #Bullet Movement
     if bulletY<-32: 
@@ -119,17 +136,9 @@ while running:
         fireBullet(bulletX,bulletY); 
         bulletY-=bulletY_change; 
     
-    #Collision
-    collision=isCollision(enemyX,enemyY,bulletX,bulletY); 
-    if collision:
-        bulletState='ready'; 
-        score+=1; 
-        print(score); 
-        enemyX,enemyY= random.randint(0,displayresolutionX-64),0; 
     
-
     player(playerX,playerY); 
-    enemy(enemyX,enemyY); 
+    
     pygame.display.update(); 
 
 
